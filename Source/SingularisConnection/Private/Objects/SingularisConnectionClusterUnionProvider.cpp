@@ -12,9 +12,12 @@ void USingularisConnectionClusterUnionProvider::ExecuteConnect_Implementation(
 	if (!IsValid(Context.Avatar)) return;
 
 	// 2) 解析目标集群与源物理组件
-	// Component 模式：严格消费 TargetComponent，要求即集群组件本身
-	UClusterUnionComponent* Cluster = Cast<UClusterUnionComponent>(Context.TargetComponent);
-	if (!Cluster && IsValid(Context.TargetActor))
+	// Component 模式：严格消费 TargetComponent，要求即集群组件本身；
+	// TargetComponent 为空时才从 TargetActor 查询集群。
+	UClusterUnionComponent* Cluster = nullptr;
+	if (Context.TargetComponent)
+		Cluster = Cast<UClusterUnionComponent>(Context.TargetComponent);
+	else if (IsValid(Context.TargetActor))
 		Cluster = ResolveTargetCluster(Context.TargetActor);
 	UPrimitiveComponent* SourcePrim = ResolveSourcePrimitive(Context.Avatar);
 	if (!IsValid(Cluster) || !IsValid(SourcePrim)) return;
@@ -27,7 +30,9 @@ void USingularisConnectionClusterUnionProvider::ExecuteConnect_Implementation(
 		ExecuteDisconnect_Implementation();
 
 	// 5) 加入集群
-	Cluster->AddComponentToCluster(SourcePrim, {});
+	TArray<int32> BoneIds;
+	BoneIds.Add(0);
+	Cluster->AddComponentToCluster(SourcePrim, BoneIds);
 	ClusterUnionComponent = Cluster;
 	ClusterMemberComponent = SourcePrim;
 

@@ -27,13 +27,13 @@ struct SINGULARISCONNECTION_API FSingularisConnectionContext
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "执行主体"))
 	TObjectPtr<AActor> Avatar = nullptr;
 
-	/** 连接目标组件（ConnectComponent 入口选填，供 Component 模式 Provider 直接消费） */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "目标组件"))
-	TObjectPtr<USceneComponent> TargetComponent = nullptr;
-
 	/** 连接目标 Actor（ConnectActor 入口选填） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "目标 Actor"))
 	TObjectPtr<AActor> TargetActor = nullptr;
+
+	/** 连接目标组件（ConnectComponent 入口选填，供 Component 模式 Provider 直接消费） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "目标组件"))
+	TObjectPtr<USceneComponent> TargetComponent = nullptr;
 
 	/** 执行连接的组件引用（对应 GeneralAbility 的 AbilityComponent） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (DisplayName = "连接组件"))
