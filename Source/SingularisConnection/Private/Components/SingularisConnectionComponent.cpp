@@ -63,13 +63,21 @@ void USingularisConnectionComponent::OnOwnerDestroyed(AActor* DestroyedActor)
 void USingularisConnectionComponent::BindOwnerDestroyed()
 {
 	if (AActor* Owner = GetOwner())
-		Owner->OnDestroyed.AddDynamic(this,
-			&USingularisConnectionComponent::OnOwnerDestroyed);
+	{
+		Owner->OnDestroyed.AddDynamic(
+			this,
+			&USingularisConnectionComponent::OnOwnerDestroyed
+		);
+	}
 }
 
 void USingularisConnectionComponent::UnbindOwnerDestroyed()
 {
 	if (AActor* Owner = GetOwner())
-		Owner->OnDestroyed.RemoveDynamic(this,
-			&USingularisConnectionComponent::OnOwnerDestroyed);
+	{
+		Owner->OnDestroyed.RemoveDynamic(
+			this,
+			&USingularisConnectionComponent::OnOwnerDestroyed
+		);
+	}
 }

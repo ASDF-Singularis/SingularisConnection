@@ -17,7 +17,8 @@ public:
 #pragma region USingularisConnectionProvider Interface
 
 	virtual void ExecuteConnect_Implementation(
-		const FSingularisConnectionParams& Params) override;
+		const FSingularisConnectionParams& Params
+	) override;
 	virtual void ExecuteDisconnect_Implementation() override;
 	virtual bool IsConnected_Implementation() const override;
 

@@ -78,7 +78,6 @@ public:
 
 #pragma endregion
 
-public:
 #pragma region Constructors
 
 	USingularisConnectionComponent();

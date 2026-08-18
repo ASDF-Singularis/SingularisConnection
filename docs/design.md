@@ -125,14 +125,9 @@ USingularisConnectionComponent : UActorComponent
 
 ### AttachProvider
 
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| `Hierarchy` | Parented | 有父子 / 无父子 |
-
-- **Parented**：Owner 附加到目标 Actor（`AttachToActor`），跟随移动；断开时 `DetachFromActor`
-- **Peered**：仅记录目标引用，不执行附加——对等关系的数据基础，拓扑管理由上层负责
-
-关系状态：`AttachedToActor`（附加目标）或 `PeeredTarget`（对等引用）。
+- **连接**：Owner 附加到目标 Actor（`AttachToActor`），跟随移动
+- **断开**：`DetachFromActor` 分离 Owner
+- **状态**：`AttachedToActor`（附加目标）是否有效
 
 ### ClusterUnionProvider
 
@@ -188,7 +183,7 @@ class UMyProvider : USingularisConnectionProvider
 2. 停靠层将装饰对齐到命中变换
 3. 游戏层 Spawn 装饰
 4. 装饰.ConnectionComponent.Connect(墙面组件)
-5. AttachProvider（Parented）附加到墙面 Actor——装饰跟随墙壁
+5. AttachProvider 附加到墙面 Actor——装饰跟随墙壁
 ```
 
 ---
@@ -210,10 +205,6 @@ class UMyProvider : USingularisConnectionProvider
 ### 单连接点
 
 每个连接组件一次维护一个关系。Actor 多连接点（围墙两端同时连接两侧）需要挂载多个连接组件。
-
-### 对等模式仅存引用
-
-`AttachProvider` 的 Peered 模式只记录引用，不建立双向关联——对等关系的双向性与拓扑管理由上层负责。
 
 ---
 

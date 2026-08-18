@@ -7,7 +7,8 @@
 #include "Components/SingularisConnectionComponent.h"
 
 void USingularisConnectionClusterUnionProvider::ExecuteConnect_Implementation(
-	const FSingularisConnectionParams& Params)
+	const FSingularisConnectionParams& Params
+)
 {
 	// 1) 卫语句
 	if (!IsValid(Params.Target) || !IsValid(Params.Target->GetOwner())) return;
@@ -33,9 +34,14 @@ void USingularisConnectionClusterUnionProvider::ExecuteConnect_Implementation(
 	ClusterUnionComponent = Cluster;
 	ClusterMemberComponent = SourcePrim;
 
-	UE_LOG(LogTemp, Log,
+	UE_LOG(
+		LogTemp,
+		Log,
 		TEXT("[ClusterUnionProvider] %s joined cluster %s (ClusterId: %s)"),
-		*GetNameSafe(SourcePrim), *GetNameSafe(Cluster), *ClusterId.ToString());
+		*GetNameSafe(SourcePrim),
+		*GetNameSafe(Cluster),
+		*ClusterId.ToString()
+	);
 }
 
 void USingularisConnectionClusterUnionProvider::ExecuteDisconnect_Implementation()
@@ -62,7 +68,8 @@ bool USingularisConnectionClusterUnionProvider::IsConnected_Implementation() con
 }
 
 UClusterUnionComponent* USingularisConnectionClusterUnionProvider::ResolveTargetCluster(
-	AActor* TargetOwner) const
+	AActor* TargetOwner
+) const
 {
 	return IsValid(TargetOwner)
 		       ? TargetOwner->FindComponentByClass<UClusterUnionComponent>()
@@ -70,7 +77,8 @@ UClusterUnionComponent* USingularisConnectionClusterUnionProvider::ResolveTarget
 }
 
 UPrimitiveComponent* USingularisConnectionClusterUnionProvider::ResolveSourcePrimitive(
-	AActor* SourceOwner) const
+	AActor* SourceOwner
+) const
 {
 	return IsValid(SourceOwner)
 		       ? Cast<UPrimitiveComponent>(SourceOwner->GetRootComponent())

@@ -6,14 +6,6 @@
 
 class USceneComponent;
 
-/** 连接父子关系 */
-UENUM(BlueprintType)
-enum class ESingularisConnectionHierarchy : uint8
-{
-	Parented UMETA(DisplayName = "有父子"),
-	Peered   UMETA(DisplayName = "无父子")
-};
-
 /**
  * 连接参数。
  *
