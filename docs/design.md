@@ -20,12 +20,12 @@ SingularisConnection 是 Singularis 生态中的连接维护插件，管理两�
 
 ### 组件正交
 
-组件与组件之间不存在配对关系。一个组件的 `Connect` 接收的只是目标组件（`USceneComponent*`）——目标可以是锚点、墙面、车架组件，任意东西。组件不知道自己"连到了谁的什么组件"上，那是 Provider 的事。
+组件与组件之间不存在配对关系。一个组件的 `ConnectComponent` / `ConnectActor` 接收的是目标组件或目标 Actor——目标可以是锚点、墙面、车架组件，任意东西。组件不知道自己"连到了谁的什么"上，那是 Provider 的事。
 
 ### 抽象契约与具体参数的分离
 
-- **组件 API**：具体参数（`Connect(USceneComponent* Target)`）——调用方面向显式直白，无需构造结构体
-- **Provider SPI**：上下文模式（`ExecuteConnect(Params)`）——抽象契约需稳定，未来加公共参数不破坏子类签名
+- **组件 API**：具体参数（`ConnectComponent(USceneComponent* Target)` / `ConnectActor(AActor* Target)`）——调用方面向显式直白，无需构造结构体
+- **Provider SPI**：上下文模式（`ExecuteConnect(Context)`）——抽象契约需稳定，未来加公共参数不破坏子类签名
 
 ### 连接与定位互不相干
 
@@ -39,7 +39,7 @@ SingularisConnection 是 Singularis 生态中的连接维护插件，管理两�
 ┌──────────────────────────────────────────────┐
 │  USingularisConnectionComponent（编排入口）    │
 │  ├── ConnectionProvider（Instanced）          │
-│  ├── Connect(Target) / Disconnect()          │
+│  ├── ConnectComponent(Target) / ConnectActor(Target) / Disconnect()  │
 │  ├── IsConnected() → 委托 Provider            │
 │  └── 事件广播                                 │
 └──────────────┬───────────────────────────────┘
@@ -47,7 +47,7 @@ SingularisConnection 是 Singularis 生态中的连接维护插件，管理两�
                ▼
 ┌──────────────────────────────────────────────┐
 │  USingularisConnectionProvider（抽象基类）     │
-│  ├── ExecuteConnect(Params)                  │
+│  ├── ExecuteConnect(Context)                 │
 │  ├── ExecuteDisconnect()                     │
 │  └── IsConnected()                           │
 └──────┬───────────────────────┬───────────────┘
@@ -71,12 +71,16 @@ SingularisConnection 是 Singularis 生态中的连接维护插件，管理两�
 
 ## 抽象契约
 
-### 参数 `FSingularisConnectionParams`
+### 上下文 `FSingularisConnectionContext`
 
 ```cpp
-struct FSingularisConnectionParams
+struct FSingularisConnectionContext
 {
-    USceneComponent* Target;    // 连接目标组件
+    AActor* Instigator;             // 发起连接的 Actor，可空
+    AActor* Avatar;                  // 承载连接组件的 Actor（执行主体）
+    USceneComponent* TargetComponent; // ConnectComponent 入口选填，供 Component 模式 Provider 直接消费
+    AActor* TargetActor;             // ConnectActor 入口选填
+    USingularisConnectionComponent* ConnectionComponent; // 执行连接的组件引用
 };
 ```
 
@@ -86,7 +90,7 @@ struct FSingularisConnectionParams
 
 ```
 USingularisConnectionProvider
-├── ExecuteConnect(Params)     // 建立关系，默认空实现
+├── ExecuteConnect(Context)   // 建立关系，默认空实现
 ├── ExecuteDisconnect()        // 释放关系，默认空实现
 └── IsConnected() → bool       // 关系状态查询，默认 false
 ```
@@ -98,7 +102,8 @@ USingularisConnectionProvider
 ```
 USingularisConnectionComponent : UActorComponent
 ├── ConnectionProvider: USingularisConnectionProvider*（Instanced）
-├── Connect(USceneComponent* Target)
+├── ConnectComponent(USceneComponent* Target)
+├── ConnectActor(AActor* Target)
 ├── Disconnect()
 ├── IsConnected() → bool
 ├── OnConnectionEstablishedEvent()
@@ -107,11 +112,11 @@ USingularisConnectionComponent : UActorComponent
 
 ### 编排流程
 
-`Connect` 内部按固定顺序执行：
+`ConnectComponent` / `ConnectActor` 内部按固定顺序执行：
 
 1. **权威校验** — 仅服务器可执行（`BlueprintAuthorityOnly`）
 2. **断开旧连接** — 若已连接，委托 Provider 断开并广播 `OnConnectionBrokenEvent`（幂等：未连接时无副作用）
-3. **组装上下文** — 将具体参数组装为 `Params`，委托 Provider 建立新连接
+3. **组装上下文** — 填充 `FSingularisConnectionContext{Instigator, Avatar=GetOwner(), ConnectionComponent=this, TargetComponent 或 TargetActor}`，委托 Provider 建立新连接
 4. **广播成功** — `IsConnected()` 为真时广播 `OnConnectionEstablishedEvent`
 
 `Disconnect`：权威校验 → 委托 Provider 断开 → 广播断开事件。
@@ -150,7 +155,7 @@ USingularisConnectionComponent : UActorComponent
 
 ```
 class UMyProvider : USingularisConnectionProvider
-    override ExecuteConnect(Params)
+    override ExecuteConnect(Context)
         // 建立自定义关系
     override ExecuteDisconnect()
         // 释放自定义关系
@@ -170,7 +175,7 @@ class UMyProvider : USingularisConnectionProvider
 1. 查询层在车架轮胎位锚点处发现匹配
 2. 停靠层将轮胎对齐到锚点
 3. 游戏层 Spawn 轮胎
-4. 轮胎.ConnectionComponent.Connect(车架锚点)
+4. 轮胎.ConnectionComponent.ConnectComponent(车架集群组件)
 5. ClusterUnionProvider 解析车架集群组件
 6. 轮胎根组件加入集群——物理联动成立
 ```
@@ -181,7 +186,7 @@ class UMyProvider : USingularisConnectionProvider
 1. 查询层自由追踪到墙面
 2. 停靠层将装饰对齐到命中变换
 3. 游戏层 Spawn 装饰
-4. 装饰.ConnectionComponent.Connect(墙面组件)
+4. 装饰.ConnectionComponent.ConnectActor(墙面 Actor)
 5. AttachProvider 附加到墙面 Actor——装饰跟随墙壁
 ```
 

@@ -5,6 +5,8 @@
 
 #include "SingularisConnectionComponent.generated.h"
 
+struct FSingularisConnectionContext;
+class AActor;
 class USceneComponent;
 class USingularisConnectionProvider;
 
@@ -97,15 +99,33 @@ public:
 	 * 服务器权威。断开旧连接后委托 ConnectionProvider 建立新连接，
 	 * 连接成功后广播 OnConnectionEstablishedEvent。
 	 *
-	 * @param Target 连接的目标组件。
+	 * @param Instigator 发起连接的 Actor，可空。
+	 * @param TargetComponent 连接的目标组件。
 	 */
 	UFUNCTION(
 		BlueprintCallable,
 		BlueprintAuthorityOnly,
 		Category = "SingularisConnection|引力奇点连接|API",
-		meta = (DisplayName = "连接")
+		meta = (DisplayName = "连接到组件")
 	)
-	void Connect(USceneComponent* Target);
+	void ConnectComponent(AActor* Instigator, USceneComponent* TargetComponent);
+
+	/**
+	 * 连接到目标 Actor。
+	 *
+	 * 服务器权威。断开旧连接后委托 ConnectionProvider 建立新连接，
+	 * 连接成功后广播 OnConnectionEstablishedEvent。
+	 *
+	 * @param Instigator 发起连接的 Actor，可空。
+	 * @param TargetActor 连接的目标 Actor。
+	 */
+	UFUNCTION(
+		BlueprintCallable,
+		BlueprintAuthorityOnly,
+		Category = "SingularisConnection|引力奇点连接|API",
+		meta = (DisplayName = "连接到 Actor")
+	)
+	void ConnectActor(AActor* Instigator, AActor* TargetActor);
 
 	UFUNCTION(
 		BlueprintCallable,
@@ -113,7 +133,7 @@ public:
 		Category = "SingularisConnection|引力奇点连接|API",
 		meta = (DisplayName = "断开连接")
 	)
-	void Disconnect();
+	void Disconnect() const;
 
 #pragma endregion
 
@@ -130,6 +150,9 @@ private:
 
 	void BindOwnerDestroyed();
 	void UnbindOwnerDestroyed();
+
+	/** 连接编排内部入口：承担权威校验、断开旧连接、组装上下文、委托 Provider、广播事件。 */
+	void ConnectInternal(const FSingularisConnectionContext& Context) const;
 
 #pragma endregion
 };

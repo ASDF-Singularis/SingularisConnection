@@ -4,22 +4,19 @@
 #include <GameFramework/Actor.h>
 #include <PhysicsEngine/ClusterUnionComponent.h>
 
-#include "Components/SingularisConnectionComponent.h"
-
 void USingularisConnectionClusterUnionProvider::ExecuteConnect_Implementation(
-	const FSingularisConnectionParams& Params
+	const FSingularisConnectionContext& Context
 )
 {
 	// 1) 卫语句
-	if (!IsValid(Params.Target) || !IsValid(Params.Target->GetOwner())) return;
-
-	const USingularisConnectionComponent* OwnerComp =
-		Cast<USingularisConnectionComponent>(GetOuter());
-	if (!IsValid(OwnerComp) || !IsValid(OwnerComp->GetOwner())) return;
+	if (!IsValid(Context.Avatar)) return;
 
 	// 2) 解析目标集群与源物理组件
-	UClusterUnionComponent* Cluster = ResolveTargetCluster(Params.Target->GetOwner());
-	UPrimitiveComponent* SourcePrim = ResolveSourcePrimitive(OwnerComp->GetOwner());
+	// Component 模式：严格消费 TargetComponent，要求即集群组件本身
+	UClusterUnionComponent* Cluster = Cast<UClusterUnionComponent>(Context.TargetComponent);
+	if (!Cluster && IsValid(Context.TargetActor))
+		Cluster = ResolveTargetCluster(Context.TargetActor);
+	UPrimitiveComponent* SourcePrim = ResolveSourcePrimitive(Context.Avatar);
 	if (!IsValid(Cluster) || !IsValid(SourcePrim)) return;
 
 	// 3) 幂等性：已连接同一集群时静默返回

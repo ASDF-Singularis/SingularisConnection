@@ -8,7 +8,7 @@ UWorld* USingularisConnectionProvider::GetWorld() const
 }
 
 void USingularisConnectionProvider::ExecuteConnect_Implementation(
-	const FSingularisConnectionParams& Params
+	const FSingularisConnectionContext& Context
 ) {}
 
 void USingularisConnectionProvider::ExecuteDisconnect_Implementation() {}

@@ -1,10 +1,10 @@
 #include "Objects/SingularisConnectionPhysicsConstraintProvider.h"
 
 void USingularisConnectionPhysicsConstraintProvider::ExecuteConnect_Implementation(
-	const FSingularisConnectionParams& Params
+	const FSingularisConnectionContext& Context
 )
 {
-	// V7: 创建 UPhysicsConstraintComponent 并约束 Owner 与 Params.Target
+	// V7: 创建 UPhysicsConstraintComponent 并约束 Context.Avatar 根组件与 Context.TargetComponent
 	UE_LOG(
 		LogTemp,
 		Warning,

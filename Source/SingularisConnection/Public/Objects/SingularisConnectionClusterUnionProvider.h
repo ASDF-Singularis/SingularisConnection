@@ -43,7 +43,7 @@ public:
 #pragma region USingularisConnectionProvider Interface
 
 	virtual void ExecuteConnect_Implementation(
-		const FSingularisConnectionParams& Params
+		const FSingularisConnectionContext& Context
 	) override;
 	virtual void ExecuteDisconnect_Implementation() override;
 	virtual bool IsConnected_Implementation() const override;

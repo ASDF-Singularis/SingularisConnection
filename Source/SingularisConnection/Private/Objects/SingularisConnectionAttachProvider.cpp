@@ -1,46 +1,44 @@
 #include "Objects/SingularisConnectionAttachProvider.h"
 
+#include <Components/SceneComponent.h>
 #include <GameFramework/Actor.h>
 
-#include "Components/SingularisConnectionComponent.h"
-
 void USingularisConnectionAttachProvider::ExecuteConnect_Implementation(
-	const FSingularisConnectionParams& Params
+	const FSingularisConnectionContext& Context
 )
 {
-	// 1) 卫语句
-	if (!IsValid(Params.Target) || !IsValid(Params.Target->GetOwner())) return;
-
-	AActor* TargetOwner = Params.Target->GetOwner();
+	// 1) 解析目标 SceneComponent：Component 模式直接消费，Actor 模式取根组件
+	USceneComponent* TargetSceneComp = Context.TargetComponent;
+	if (!IsValid(TargetSceneComp))
+		TargetSceneComp = IsValid(Context.TargetActor) ? Context.TargetActor->GetRootComponent() : nullptr;
+	if (!IsValid(TargetSceneComp)) return;
 
 	// 2) 幂等性：已附加到同一目标时静默返回
-	if (AttachedToActor.Get() == TargetOwner) return;
+	if (AttachedToComponent.Get() == TargetSceneComp) return;
 
-	// 3) 执行 Actor 附加
-	const USingularisConnectionComponent* OwnerComp =
-		Cast<USingularisConnectionComponent>(GetOuter());
-	if (!IsValid(OwnerComp) || !IsValid(OwnerComp->GetOwner())) return;
+	// 3) 取 Avatar 根组件并执行附加
+	if (!IsValid(Context.Avatar)) return;
+	USceneComponent* AvatarRoot = Context.Avatar->GetRootComponent();
+	if (!IsValid(AvatarRoot)) return;
 
 	const FAttachmentTransformRules Rules(EAttachmentRule::KeepWorld, true);
-	OwnerComp->GetOwner()->AttachToActor(TargetOwner, Rules);
-	AttachedToActor = TargetOwner;
+	AvatarRoot->AttachToComponent(TargetSceneComp, Rules);
+	AttachedToComponent = TargetSceneComp;
+	AttachedAvatarRoot = AvatarRoot;
 }
 
 void USingularisConnectionAttachProvider::ExecuteDisconnect_Implementation()
 {
-	if (!AttachedToActor.IsValid()) return;
+	if (!AttachedToComponent.IsValid() || !AttachedAvatarRoot.IsValid()) return;
 
-	const USingularisConnectionComponent* OwnerComp =
-		Cast<USingularisConnectionComponent>(GetOuter());
-	if (IsValid(OwnerComp) && IsValid(OwnerComp->GetOwner()))
-	{
-		const FDetachmentTransformRules Rules(EDetachmentRule::KeepWorld, true);
-		OwnerComp->GetOwner()->DetachFromActor(Rules);
-	}
-	AttachedToActor.Reset();
+	const FDetachmentTransformRules Rules(EDetachmentRule::KeepWorld, true);
+	AttachedAvatarRoot->DetachFromComponent(Rules);
+
+	AttachedToComponent.Reset();
+	AttachedAvatarRoot.Reset();
 }
 
 bool USingularisConnectionAttachProvider::IsConnected_Implementation() const
 {
-	return AttachedToActor.IsValid();
+	return AttachedToComponent.IsValid();
 }

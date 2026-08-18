@@ -38,7 +38,7 @@ public:
 	 * 子类在此方法中建立并管理该模式的关系。
 	 * 默认实现为空。
 	 *
-	 * @param Params 连接参数，承载 Target 等公共上下文。
+	 * @param Context 连接上下文，承载 Avatar / Target / Instigator 等公共上下文。
 	 */
 	UFUNCTION(
 		BlueprintNativeEvent,
@@ -46,7 +46,7 @@ public:
 		Category = "SingularisConnection|引力奇点连接提供器|SPI",
 		meta = (DisplayName = "执行连接")
 	)
-	void ExecuteConnect(const FSingularisConnectionParams& Params);
+	void ExecuteConnect(const FSingularisConnectionContext& Context);
 
 	/**
 	 * 执行断开逻辑。
