@@ -98,7 +98,6 @@ USingularisConnectionProvider
 ```
 USingularisConnectionComponent : UActorComponent
 ├── ConnectionProvider: USingularisConnectionProvider*（Instanced）
-├── ConnectionPoint: USceneComponent*（配置，供 Provider 参考）
 ├── Connect(USceneComponent* Target)
 ├── Disconnect()
 ├── IsConnected() → bool

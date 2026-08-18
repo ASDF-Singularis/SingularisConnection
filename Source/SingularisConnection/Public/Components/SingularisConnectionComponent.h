@@ -48,18 +48,6 @@ public:
 
 #pragma endregion
 
-#pragma region Parameter
-
-	UPROPERTY(
-		EditDefaultsOnly,
-		BlueprintReadOnly,
-		Category = "SingularisConnection|引力奇点连接|参数",
-		meta = (DisplayName = "连接点")
-	)
-	TObjectPtr<USceneComponent> ConnectionPoint = nullptr;
-
-#pragma endregion
-
 #pragma region 事件分发器
 
 	UPROPERTY(
